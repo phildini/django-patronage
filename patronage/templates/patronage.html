@@ -1,0 +1,64 @@
+{% extends "patronage_base.html" %}
+
+{% load socialaccount %}
+{% load account %}
+
+{% block content %}
+    <div class="container">
+    {% if user.is_authenticated %}
+        <div class="row justify-content-center">
+            <div class="col-4">
+                {% get_social_accounts user as accounts %}
+                {% if not accounts.patreon %}
+                <p><a href="{% provider_login_url "patreon" process=process next="/" %}" class="btn btn-success">Login with Patreon!</a></p>
+                {% endif %}
+                {% if not accounts.eventbrite %}
+                <p><a href="{% provider_login_url "eventbrite" process=process next="/" %}" class="btn btn-success">Login with Eventbrite!</a></p>
+                {% endif %}
+            </div>
+        </div>
+        {% if accounts.patreon %}
+        <div class="row justify-content-center">
+            {% if accounts.eventbrite %}
+            <div class="col-4">
+                <h2>Your tiers</h2>
+                <form class="form" action="{{ action }}" method="POST" id="tierForm">
+                    {% csrf_token %}
+                    {% for tier in creator_tiers %}
+                    <p>
+                        <input type="checkbox" id="{{ tier.tier_id }}" name="{{ tier.tier_id }}" {% if tier.remote_benefit_id %}checked{% endif %}" />
+                        <label for="{{ tier.tier_id }}">{{ tier.tier_title }}{% if tier.remote_benefit_id %} - Access Code {{ tier.remote_benefit_title }}{% endif %}</label>
+                    </p>
+                    {% endfor %}
+                    <input class="btn btn-success" type="submit" value="Grant tiers access to events" form="tierForm">
+                </form>
+            </div>
+            {% endif %}
+            <div class="col-4">
+            <h3>Tiers you belong to</h3>
+            {% for tier in patron_tiers %}
+            {% if tier.remote_benefit_id %}
+                <div class="card">
+                    <div class="card-body">
+                        <p class="card-title">{{ tier.campaign_title }} -- {{ tier.tier_title }}</p>
+                        {% if tier.remote_benefit_id %}
+                        <p class="card-text">Eventbrite access code: {{ tier.remote_benefit_title }}</p>
+                        {% else %}
+                        <p class="card-text">No access code yet!</p>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="row justify-content-center">
+            <div class="col-4">
+            <p><a href="{% provider_login_url "patreon" process=process next="/" %}" class="btn btn-success">Login with Patreon!</a></p>
+            <p><a href="{% provider_login_url "eventbrite" process=process next="/" %}" class="btn btn-success">Login with Eventbrite!</a></p>
+            </div>
+    {% endif %}
+    </div>
+{% endblock %}
