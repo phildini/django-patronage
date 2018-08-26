@@ -3,11 +3,12 @@ import requests
 from django.views.generic import TemplateView
 
 from django.contrib.auth.models import User
-from allauth.socialaccount.models import SocialToken, SocialApp
+from allauth.socialaccount.models import SocialToken
 
 from django.utils.crypto import get_random_string
 
 from .models import Benefit
+from .util import get_creator_tiers, parse_includes
 
 from django.shortcuts import get_object_or_404, redirect
 
@@ -53,51 +54,9 @@ class PatronageView(TemplateView):
             except SocialToken.DoesNotExist:
                 pass
             if self.patreonuser:
-                context["creator_tiers"] = self.get_creator_tiers()
+                context["creator_tiers"] = get_creator_tiers(self.patreonuser)
                 context["patron_tiers"] = self.get_patron_tiers()
         return context
-
-    def get_creator_tiers(self):
-        # TODO: pull tiers on account connect
-        logger.info("Getting creator tiers")
-        tiers = []
-        r = requests.get(
-            "https://www.patreon.com/api/oauth2/v2/campaigns",
-            params={
-                "include": "tiers,creator",
-                "fields[tier]": "title,amount_cents",
-                "fields[user]": "full_name",
-            },
-            headers={"Authorization": "Bearer {}".format(self.patreonuser.token)},
-        )
-        patreon_json = r.json()
-        if patreon_json.get("included"):
-            includes = self.parse_includes(patreon_json["included"])
-            tiers = []
-            for tier in includes["tier"]:
-                campaign_id = patreon_json.get("data")[0].get("id")
-                creator_id = patreon_json.get("data")[0]["relationships"]["creator"][
-                    "data"
-                ]["id"]
-                benefit, created = Benefit.objects.get_or_create(
-                    campaign_id=campaign_id,
-                    campaign_title=includes["user"][creator_id]["attributes"][
-                        "full_name"
-                    ],
-                    tier_id=tier,
-                    tier_title=includes["tier"][tier]
-                    .get("attributes", {})
-                    .get("title"),
-                    tier_amount_cents=includes["tier"][tier]
-                    .get("attributes", {})
-                    .get("amount_cents"),
-                )
-                tiers.append(benefit)
-
-            tiers = Benefit.objects.filter(campaign_id=campaign_id).order_by(
-                "tier_amount_cents"
-            )
-        return tiers
 
     def get_patron_tiers(self):
         logger.info("getting patron tiers")
@@ -113,7 +72,7 @@ class PatronageView(TemplateView):
         patron_json = response.json()
         patron_benefits = []
         if patron_json.get("included"):
-            includes = self.parse_includes(patron_json["included"])
+            includes = parse_includes(patron_json["included"])
             memberships = [
                 member
                 for member in patron_json["included"]
@@ -147,18 +106,3 @@ class PatronageView(TemplateView):
                     )
                     patron_benefits.append(benefit)
         return patron_benefits
-
-    def parse_includes(self, include_dict):
-        includes = {}
-        for include in include_dict:
-            include_dict = {
-                "attributes": include["attributes"],
-                "relationships": include.get("relationships", {}),
-            }
-            id = include["id"]
-            if include["type"] not in includes:
-                includes[include["type"]] = {id: include_dict}
-            else:
-                includes[include["type"]][id] = include_dict
-
-        return includes
