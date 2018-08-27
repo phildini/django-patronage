@@ -7,7 +7,7 @@ from allauth.socialaccount.models import SocialToken
 
 from django.utils.crypto import get_random_string
 
-from .models import Benefit
+from .models import Benefit, UserBenefit
 from .util import get_creator_tiers, parse_includes
 
 from django.shortcuts import get_object_or_404, redirect
@@ -103,6 +103,10 @@ class PatronageView(TemplateView):
                         ],
                         tier_id=tier["id"],
                         tier_title=includes["tier"][tier["id"]]["attributes"]["title"],
+                    )
+                    userbenefit, _ = UserBenefit.objects.get_or_create(
+                        user=self.request.user,
+                        benefit=benefit,
                     )
                     patron_benefits.append(benefit)
         return patron_benefits
