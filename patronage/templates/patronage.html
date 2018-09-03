@@ -6,20 +6,10 @@
 {% block content %}
     <div class="container">
     {% if user.is_authenticated %}
+        {% include "account_connect_snippet.html" %}
+
         <div class="row justify-content-center">
-            <div class="col-4">
-                {% get_social_accounts user as accounts %}
-                {% if not accounts.patreon %}
-                <p><a href="{% provider_login_url "patreon" process=process next="/" %}" class="btn btn-success">Login with Patreon!</a></p>
-                {% endif %}
-                {% if not accounts.eventbrite %}
-                <p><a href="{% provider_login_url "eventbrite" process=process next="/" %}" class="btn btn-success">Login with Eventbrite!</a></p>
-                {% endif %}
-            </div>
-        </div>
-        {% if accounts.patreon %}
-        <div class="row justify-content-center">
-            {% if accounts.eventbrite %}
+            {% if patreonuser and remote_user %}
             <div class="col-4">
                 <h2>Your tiers</h2>
                 <form class="form" action="{{ action }}" method="POST" id="tierForm">
@@ -42,7 +32,7 @@
                     <div class="card-body">
                         <p class="card-title">{{ tier.campaign_title }} -- {{ tier.tier_title }}</p>
                         {% if tier.remote_benefit_id %}
-                        <p class="card-text">Eventbrite access code: {{ tier.remote_benefit_title }}</p>
+                        <p class="card-text">Access code: {{ tier.remote_benefit_title }}</p>
                         {% else %}
                         <p class="card-text">No access code yet!</p>
                         {% endif %}
@@ -52,13 +42,8 @@
             {% endfor %}
             </div>
         </div>
-        {% endif %}
     {% else %}
-        <div class="row justify-content-center">
-            <div class="col-4">
-            <p><a href="{% provider_login_url "patreon" process=process next="/" %}" class="btn btn-success">Login with Patreon!</a></p>
-            <p><a href="{% provider_login_url "eventbrite" process=process next="/" %}" class="btn btn-success">Login with Eventbrite!</a></p>
-            </div>
+        {% include "account_connect_snippet.html" %}
     {% endif %}
     </div>
 {% endblock %}

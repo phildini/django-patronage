@@ -3,7 +3,7 @@ import requests
 from django.views.generic import TemplateView
 
 from django.contrib.auth.models import User
-from allauth.socialaccount.models import SocialToken
+from allauth.socialaccount.models import SocialApp, SocialToken
 
 from django.utils.crypto import get_random_string
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__file__)
 
 
 class PatronageView(TemplateView):
-
+    remote_app = None
     template_name = "patronage.html"
 
     def create_remote_benefit(self):
@@ -44,6 +44,9 @@ class PatronageView(TemplateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         self.patreonuser = None
+        if self.remote_app:
+            context["remote_app"] = self.remote_app
+            context["remote_app_name"] = self.remote_app.title
         context["process"] = "login"
         if self.request.user.is_authenticated:
             context["process"] = "connect"
@@ -51,11 +54,15 @@ class PatronageView(TemplateView):
                 self.patreonuser = SocialToken.objects.get(
                     account__user=self.request.user, app__provider="patreon"
                 )
+                context['remote_user'] = SocialToken.objects.get(
+                    account__user=self.request.user, app__provider=self.remote_app,
+                )
             except SocialToken.DoesNotExist:
                 pass
             if self.patreonuser:
                 context["creator_tiers"] = get_creator_tiers(self.patreonuser)
                 context["patron_tiers"] = self.get_patron_tiers()
+        context['patreonuser'] = self.patreonuser
         return context
 
     def get_patron_tiers(self):
