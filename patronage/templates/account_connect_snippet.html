@@ -1,0 +1,15 @@
+{% load socialaccount %}
+{% load account %}
+
+<div class="row justify-content-center">
+    <div class="col-4">
+        {% if not patreonuser %}
+        <p><a href="{% provider_login_url "patreon" process=process next="/" %}" class="btn btn-success">Login with Patreon!</a></p>
+        {% endif %}
+    </div>
+    <div class="col-4">
+        {% if not remote_user %}
+        <p><a href="{% provider_login_url remote_app process=process next="/" %}" class="btn btn-success">Login with {{ remote_app_name }}!</a></p>
+        {% endif %}
+    </div>
+</div>
