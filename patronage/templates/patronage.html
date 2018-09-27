@@ -46,9 +46,11 @@
             <div class="col-4">
                 <h3>Your granted benefits</h3>
                 {% for tier in patron_tiers %}
+                    <p>{{ tier.tier_title }}:
                     {% for benefit in tier.benefits.all %}
                         <a href="{{ benefit.url }}">{{ benefit.title }}</a>
                     {% endfor %}
+                    </p>
                 {% endfor %}
             </div>
         </div>
