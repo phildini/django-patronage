@@ -7,41 +7,52 @@
     <div class="container">
     {% if user.is_authenticated %}
         {% include "account_connect_snippet.html" %}
-
+        {% if patreonuser and remote_user %}
+        {% if creator_tiers %}
+        <form class="form" action="{{ action }}" method="POST" id="tierForm">
         <div class="row justify-content-center">
-            {% if patreonuser and remote_user %}
+            {% csrf_token %}
+            
             <div class="col-4">
                 <h2>Your tiers</h2>
-                <form class="form" action="{{ action }}" method="POST" id="tierForm">
-                    {% csrf_token %}
                     {% for tier in creator_tiers %}
                     <p>
-                        <input type="checkbox" id="{{ tier.tier_id }}" name="{{ tier.tier_id }}" {% if tier.remote_benefit_id %}checked{% endif %}" />
-                        <label for="{{ tier.tier_id }}">{{ tier.tier_title }}{% if tier.remote_benefit_id %} - Access Code {{ tier.remote_benefit_title }}{% endif %}</label>
+                        <input type="checkbox" id="tier--{{ tier.tier_id }}" name="tier--{{ tier.tier_id }}" {% if tier.remote_benefit_id %}checked{% endif %}" />
+                        <label for="tier--{{ tier.tier_id }}">{{ tier.tier_title }}{% if tier.remote_benefit_id %} - Access Code {{ tier.remote_benefit_title }}{% endif %}</label>
+                        {% for benefit in tier.benefits.all %}
+                        <div class="btn-group" role="group">
+                            <a href="{{ benefit.url }}" class="btn btn-light btn-sm">{{ benefit.title }}</a>
+                        </div>
+                        {% endfor %}
                     </p>
                     {% endfor %}
-                    <input class="btn btn-success" type="submit" value="Grant tiers access to events" form="tierForm">
-                </form>
+                    <input class="btn btn-success" type="submit" value="Grant tiers access to benefits" form="tierForm">
             </div>
-            {% endif %}
             <div class="col-4">
-            <h3>Tiers you belong to</h3>
-            {% for tier in patron_tiers %}
-            {% if tier.remote_benefit_id %}
-                <div class="card">
-                    <div class="card-body">
-                        <p class="card-title">{{ tier.campaign_title }} -- {{ tier.tier_title }}</p>
-                        {% if tier.remote_benefit_id %}
-                        <p class="card-text">Access code: {{ tier.remote_benefit_title }}</p>
-                        {% else %}
-                        <p class="card-text">No access code yet!</p>
-                        {% endif %}
-                    </div>
-                </div>
-            {% endif %}
+            <h3>Remote Benefits</h3>
+            {% for benefit in remote_benefits %}
+                <p>
+                    <input type="checkbox" id="benefit--{{ benefit.id }}" name="benefit--{{ benefit.id }}" />
+                    <label for="benefit--{{ benefit.id }}">{{ benefit.title }}</label>
+                </p>
             {% endfor %}
             </div>
         </div>
+        </form>
+        {% endif %}
+        {% endif %}
+        {% if patron_tiers %}
+        <div class="row justify-content-center">
+            <div class="col-4">
+                <h3>Your granted benefits</h3>
+                {% for tier in patron_tiers %}
+                    {% for benefit in tier.benefits.all %}
+                        <a href="{{ benefit.url }}">{{ benefit.title }}</a>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
     {% else %}
         {% include "account_connect_snippet.html" %}
     {% endif %}

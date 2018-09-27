@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Benefit, UserBenefit
+from .models import Tier, UserTier, RemoteBenefit
 
-admin.site.register(Benefit)
-admin.site.register(UserBenefit)
+admin.site.register(Tier)
+admin.site.register(UserTier)
+admin.site.register(RemoteBenefit)
