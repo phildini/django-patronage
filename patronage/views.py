@@ -16,7 +16,8 @@ logger = logging.getLogger(__file__)
 
 
 class PatronageView(TemplateView):
-    remote_app = None
+    remote_app = 'remote_app'
+    remote_app_name = 'RemoteAppName'
     template_name = "patronage.html"
 
     def create_remote_benefit(self):
@@ -47,12 +48,6 @@ class PatronageView(TemplateView):
                 tier.benefits.add(*list(benefits))
                 tier.save()
                 self.grant_remote_benefits(tier)
-        # if benefits:
-        #     remote_benefit_id, remote_benefit_title = self.create_remote_benefit()
-        # for benefit in benefits:
-        #     benefit.remote_benefit_id = remote_benefit_id
-        #     benefit.remote_benefit_title = remote_benefit_title
-        #     benefit.save()
         return redirect("/")
 
     def get_context_data(self, *args, **kwargs):

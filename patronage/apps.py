@@ -2,13 +2,7 @@ from django.apps import AppConfig
 from django.dispatch import receiver
 from allauth.socialaccount import signals
 
-from channels.layers import get_channel_layer
-
 from .util import get_creator_tiers
-
-from asgiref.sync import async_to_sync
-
-channel_layer = get_channel_layer()
 
 
 def social_account_signal_handler(sender, **kwargs):
@@ -21,13 +15,6 @@ def social_account_signal_handler(sender, **kwargs):
                 account__user=sociallogin.account.user, app__provider="patreon"
             )
             tiers = get_creator_tiers(patreonuser)
-            async_to_sync(channel_layer.send)(
-                "patreon-webhooks",
-                {
-                    "type": "webhook.create",
-                    "social_token_id": patreonuser.id,
-                }
-            )
         except SocialToken.DoesNotExist:
             pass
 
