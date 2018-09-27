@@ -20,11 +20,12 @@ def get_creator_tiers(patreonuser):
         headers={"Authorization": "Bearer {}".format(patreonuser.token)},
     )
     patreon_json = patreon_response.json()
-    campaign_id = patreon_json.get("data")[0].get("id")
-    creator_id = patreon_json.get("data")[0]["relationships"]["creator"][
-        "data"
-    ]["id"]
-    if patreon_json.get("included"):
+    data = patreon_json.get("data")
+    if patreon_json.get("included") and data:
+        campaign_id = patreon_json.get("data",[{}])[0].get("id")
+        creator_id = patreon_json.get("data")[0]["relationships"]["creator"][
+            "data"
+        ]["id"]
         includes = parse_includes(patreon_json["included"])
         tiers = []
         for tier in includes.get("tier", []):

@@ -87,7 +87,6 @@ class PatronageView(TemplateView):
             headers={"Authorization": "Bearer {}".format(self.patreonuser.token)},
         )
         patron_json = response.json()
-        patron_benefits = []
         if patron_json.get("included"):
             includes = parse_includes(patron_json["included"])
             memberships = [
@@ -124,6 +123,5 @@ class PatronageView(TemplateView):
                     userbenefit, _ = UserTier.objects.get_or_create(
                         user=self.request.user, tier=tier
                     )
-                    patron_benefits.append(tier)
                     self.grant_remote_benefits(tier)
-        return patron_benefits
+        return Tier.objects.filter(usertier__user=self.request.user).exclude(benefits=None)
