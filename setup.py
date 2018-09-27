@@ -8,12 +8,9 @@ with open(os.path.join(os.path.dirname(__file__), "README.md")) as readme:
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 requirements = [
-    "django-allauth",
     "Django",
     "requests",
     "requests-oauthlib",
-    "channels",
-    "channels_redis",
 ]
 
 setup(
@@ -39,8 +36,5 @@ setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP",
-    ],
-    dependency_links=[
-        "git+https://github.com/phildini/django-allauth.git#egg=django-allauth"
     ],
 )
