@@ -40,4 +40,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Topic :: Internet :: WWW/HTTP",
     ],
+    dependency_links=[
+        "git+https://github.com/phildini/django-allauth.git#egg=django-allauth"
+    ],
 )
