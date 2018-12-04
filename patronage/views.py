@@ -104,7 +104,6 @@ class PatronageView(TemplateView):
                 creator_id = includes["campaign"][campaign_id]["relationships"][
                     "creator"
                 ]["data"]["id"]
-                campaign_title = campaign.get("attributes", {}).get("summary")
                 patron_tiers = (
                     membership.get("relationships", {})
                     .get("currently_entitled_tiers", {})
@@ -112,14 +111,20 @@ class PatronageView(TemplateView):
                 )
                 if patron_tiers:
                     tier = patron_tiers[0]
-                    tier, _ = Tier.objects.get_or_create(
+                    tier, created = Tier.objects.get_or_create(
                         campaign_id=campaign_id,
-                        campaign_title=includes["user"][creator_id]["attributes"][
-                            "full_name"
-                        ],
                         tier_id=tier["id"],
-                        tier_title=includes["tier"][tier["id"]]["attributes"]["title"],
                     )
+                    if created:
+                        tier.campaign_title = (
+                            includes["user"][creator_id]["attributes"]["full_name"]
+                        )
+                        tier.tier_amount_cents = (
+                            includes["tier"][tier["id"]].get("attributes", {}).get("amount_cents")
+                        )
+                        tier.tier_title = includes["tier"][tier["id"]]["attributes"]["title"]
+                        tier.save()
+
                     userbenefit, _ = UserTier.objects.get_or_create(
                         user=self.request.user, tier=tier
                     )
