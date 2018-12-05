@@ -29,16 +29,16 @@ def get_creator_tiers(patreonuser):
         includes = parse_includes(patreon_json["included"])
         tiers = []
         for tier in includes.get("tier", []):
-            
+
             tier, created = Tier.objects.get_or_create(
                 campaign_id=campaign_id,
-                campaign_title=includes["user"][creator_id]["attributes"]["full_name"],
                 tier_id=tier,
-                tier_title=includes["tier"][tier].get("attributes", {}).get("title"),
-                tier_amount_cents=includes["tier"][tier]
-                .get("attributes", {})
-                .get("amount_cents"),
             )
+            if created:
+                tier.tier_title = includes["tier"][tier].get("attributes", {}).get("title")
+                tier.tier_amount_cents = includes["tier"][tier].get("attributes", {}).get("amount_cents")
+                tier.campaign_title = includes["user"][creator_id]["attributes"]["full_name"]
+
             tier.creators.add(patreonuser.account.user)
             tier.save()
             tiers.append(tier)
